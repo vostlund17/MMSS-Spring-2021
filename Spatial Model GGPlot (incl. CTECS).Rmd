@@ -1,0 +1,251 @@
+---
+title: "GGplot Worksheet"
+author: "Your Name"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(tidyverse)
+
+```
+
+# Housekeeping
+
+First I'll need you to go to the console and install the gapminder library. In the console execute the command:
+
+install.packages("gapminder")
+
+Afterwards, you'll be able to knit this document
+
+# The Grammar of Graphics
+
+A ggplot always proceeds in the same order.
+1. Tell R what data we want to use
+2. Specify aesthetic mappings (how are our variables expressed: is this variable linked to colour? Is it used to get our value on the x-axis?)
+3. Specify what geometric objects (geoms) to use
+4. Change theme and scale
+
+
+Take the following example data:
+
+```{r echo=F} 
+example_data <- tribble(
+  ~name, ~gender, ~age, ~fav_temp,
+  "Max", "Male", 30, 70,
+  "Mary", "Female", 23, 90,
+  "Jay", "Male", 27, 80
+)
+
+```
+
+
+Let's draw a simple ggplot:
+
+```{r}
+ggplot(example_data) +  # 1. We give it a dataset
+  aes(x=name, y=age)+ # 2. specify X and Y mappings that will apply to all geoms plotted
+  geom_col(aes(fill=name), color="black")  # 3. we decide we want a column. 
+
+
+
+  
+```
+
+Note that  geom_col() inherits X and Y mappings from above, and we add another aesthetic: we want it to fill by the "name" variable as well.
+
+Outside of the aes function, arguments apply to all geoms, regardless of variable value. So all are getting the same color (which here affects border)
+
+
+## Aesthetics
+
+Some aesthetics include:
+
+`x` - geom is placed on x axis according to this variable
+
+`y` - geom is placed on y axis according to this variable
+
+`fill` - fills in color according to this variable
+
+`color` - variable defines geom -- often border, but use to change color of default geom_point() shape
+
+`size` - numerical value from 1 to... I don't know actually
+
+`alpha` - transparency/opacity (value from 0 to 1) 
+
+`shape` - numerical value which corresponds to different shape, e.g. for points (see examples [here](http://www.sthda.com/english/wiki/ggplot2-point-shapes))
+
+If we set aes() in the beginning of the plot, then all future geoms will use that set of aesthetics, unless we specify their own aesthetics in their geom. An example: 
+```{r fig.height=5}
+
+ggplot(example_data) + 
+  aes(x=name, y=age, color=name)+
+  geom_point()+
+  geom_point(aes(y=fav_temp),color="blue") # we are changing the Y variable of these points, and we're also coloring them all blue (outside the aes() function)
+```
+
+## Geoms
+
+There are many geoms. Some only need an X, others need X and Y, and then they take a variety of aesthetics relating to color, fill, size, all again depending. 
+
+Here I'm going to focus only on geom_point() as that's the one you're most likely to use. The other interesting one is geom_segment, which lets you draw lines that can divide your plot into areas. You need to specify beginning and ending x and y values, as the below illustrates
+
+```{r}
+ggplot(example_data) +  
+  aes(x=name, y=age, color=name)+ 
+  geom_point() +
+  geom_segment(x=1, xend=5, y=30, yend=20, color="black", size=1.5)
+
+```
+
+
+# Practice 1
+
+We are trying to do a visualization like this one (knit the document to see it bigger): 
+
+![](https://www.maxweylandt.com/MMSS/gapminder2.png)
+
+  1. The below code gets the data ready for you. Execute it (using ctrl+enter or cmd+enter, or hitting the green button) so you have the gapminder_2007 dataset loaded. It should pop up in your environment pane on the right hand side
+
+```{r}
+gapminder_2007 <- gapminder %>% filter(year==2007)
+
+```
+
+2. use the names() or str() function to get an overview of your dataset, especially its variable names
+
+```{r}
+names(gapminder_2007)
+str(gapminder_2007)
+```
+
+3. Assign the correct variables to the aesthetics. Note: some of the below options are a red herring (i.e. you don't need them and can delete them)
+```{r error=TRUE}
+
+ggplot(gapminder_2007) + 
+  aes(x = gdpPercap, y=lifeExp, size = pop, color = continent)+
+  geom_point()
+  
+```
+
+4. Discuss with your partner: What else should you change about your graph to make it look more like the example?
+
+
+
+# Spatial Data
+
+I'll leave most of the code in the slides, as in class I'm planning to just live-code through some stuff here. Make sure to get your data in the right shape. Then the rest is running with the example code and tweaking the look. 
+
+
+
+But if you want to follow along/look along with the code example I'll work with, it will be this: 
+
+![](https://www.maxweylandt.com/MMSS/australia.png)
+
+
+```{r}
+aus_data <- tribble(
+  ~name, ~authlib, ~lr, ~age,
+  "Katter's Australian", 4, -1, "new",
+  "Green", -3, -1, "new",
+  "Labor", 2.5, 2, "old",
+  "liberal", 3,4, "old",
+  "National",4,4, "old"
+)
+```
+
+
+# Visual Tweaks
+
+## Text and Labels
+
+GGplot automatically populates x and y labels from variable names. But it can take a variety of labels:
+
+```{r}
+ggplot(example_data) +  
+  aes(x=name, y=age, color=name)+ 
+  geom_point() +
+  labs(title="a nonsense graph", 
+       subtitle="with a subtitle",
+       caption="a note here", 
+       x = "Name",
+       y="Age")
+```
+
+
+## Theming
+
+We can change anything we like -- background, text size, tick marks, gridlines -- using the theme() function. Some settings are preset: if you write theme_ you will be presented with options. I like theme_minimal()
+
+```{r}
+ggplot(example_data) +  
+  aes(x=name, y=age, color=name)+ 
+  geom_point() +
+  labs(title="a nonsense graph", 
+       subtitle="with a subtitle",
+       caption="a note her", 
+       x = "Name",
+       y="Age")+
+  theme_minimal()
+```
+
+the package ggthemes() has some really nice presets as well and you can find others as well. 
+
+But you can specify stuff within your theme: 
+
+```{r}
+ggplot(example_data) +  
+  aes(x=name, y=age, color=name)+ 
+  geom_point() +
+  labs(title="a nonsense graph", 
+       subtitle="with a subtitle",
+       caption="a note her", 
+       x = "Name",
+       y="Age")+
+  theme(
+    axis.title = element_text(size=20, color="red"))
+```
+
+There are too many things for me to list them all. Sketch your graph, decide what you want it to look like, and then google how to do that thing (you can also email me for help!)
+
+```{r}
+CTEC_data <- tribble(
+  ~Major, ~Discipline, ~Core, ~Electives,
+  "Economics", "Humanities / Social Sciences", 6.27, 5.84,
+  "Computer Science", "STEM", 7.58, 9.28,
+  "Political Science", "Humanities / Social Sciences", 5.17, 5.83,
+  "Statistics", "STEM", 6.98, 6.42,
+  "Physics", "STEM", 8.01, 6.73,
+  "Chemistry", "STEM", 9.26, 6.35,
+  "History", "Humanities / Social Sciences", 4.98, 5.21,
+  "English: Literature", "Humanities / Social Sciences", 5.71, 6.09,
+  "French", "Humanities / Social Sciences", 5.58, 5.71,
+  "Mechanical Engineering", "STEM", 8.29, 7.96,
+  "Varsity Athlete", "Actor", 5, 5,
+  "Academic Enthusiast", "Actor", 8.5, 8.5,
+  "Relaxed Senior", "Actor", 9, 5.5,
+  "Homesick Underclassman", "Actor", 4.5, 7.5
+)
+```
+
+```{r}
+ggplot(CTEC_data) +  
+  aes(x=Core, y=Electives, color= Discipline) + 
+  geom_point() +
+  geom_text(aes(label = Major), size = 5, position = position_nudge(x = 0, y = 0.10)) + 
+  xlim(4,10.5) +
+  ylim(4,10) +
+  geom_segment(y = 3, yend = 11, x = 3, xend = 11, color = "black", linetype = "dotted") +
+  geom_segment(y = 14, yend = 0,
+               x = 0, xend = 14, color = "black", linetype = "dotted") +
+  labs(x = "Average Time Spent on Core/Required Classes",
+       y = "Average Time Spent on Elective Classes",
+       title = "Northwestern Majors by How Time Consuming They Are") +
+  annotate("text", x = 4.75, y = 9, label = "Easier") +
+  annotate("text", x = 9, y = 9.5, label = "Gets More Difficult") +
+  annotate("text", x = 5.25, y = 9, label = "Harder") +
+  annotate("text", x = 10, y = 9.5, label = "Early Weed Out")
+```
